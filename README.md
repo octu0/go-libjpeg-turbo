@@ -47,9 +47,18 @@ func main() {
 		panic(err)
 	}
 	fmt.Printf("%+v\n", header)
-	// => {Width:320 Height:240 Subsampling:2 ColorSpace:1}
+	// => {Width:320 Height:240 Subsampling:4:2:0 ColorSpace:YCbCr}
 
 	// decode JPEG image To RGBA
+	imgRef, err := decoder.DecodeToRGBA(data)
+	if err != nil {
+		panic(err)
+	}
+	defer imgRef.Close()
+
+	saveImage(imgRef.Image)
+
+	// or Decode with PixelFormat
 	img, err := decoder.Decode(data, turbojpeg.PixelFormatRGBA)
 	if err != nil {
 		panic(err)
@@ -175,34 +184,36 @@ func PNGToRGBA(r io.Reader) (*image.RGBA, error) {
 
 ### Decode
 
-3x faster than [image/jpeg.Decode](https://pkg.go.dev/image/jpeg#Decode)
+~3x faster than [image/jpeg.Decode](https://pkg.go.dev/image/jpeg#Decode)
 
 ```
 goos: darwin
 goarch: amd64
 pkg: github.com/octu0/go-libjpeg-turbo
-cpu: Intel(R) Core(TM) i5-8210Y CPU @ 1.60GHz
+cpu: Intel(R) Core(TM) i7-8569U CPU @ 2.80GHz
 BenchmarkJpegDecode
 BenchmarkJpegDecode/image/jpeg.Decode
-BenchmarkJpegDecode/image/jpeg.Decode-4         	     436	   2664416 ns/op	  136977 B/op	      19 allocs/op
+BenchmarkJpegDecode/image/jpeg.Decode-8         	     631	   1811885 ns/op	  136980 B/op	      19 allocs/op
 BenchmarkJpegDecode/turbojpeg.Decode
-BenchmarkJpegDecode/turbojpeg.Decode-4          	    1402	    822829 ns/op	  332926 B/op	       3 allocs/op
+BenchmarkJpegDecode/turbojpeg.Decode-8          	    1921	    630060 ns/op	  311638 B/op	       3 allocs/op
+BenchmarkJpegDecode/turbojpeg.DecodeToRGBA
+BenchmarkJpegDecode/turbojpeg.DecodeToRGBA-8    	    1711	    631214 ns/op	  311934 B/op	       4 allocs/op
 PASS
 ```
 
 ### Encode
 
-7x faster than [image/jpeg.Encode](https://pkg.go.dev/image/jpeg#Encode)
+~9x faster than [image/jpeg.Encode](https://pkg.go.dev/image/jpeg#Encode)
 
 ```
 goos: darwin
 goarch: amd64
 pkg: github.com/octu0/go-libjpeg-turbo
-cpu: Intel(R) Core(TM) i5-8210Y CPU @ 1.60GHz
+cpu: Intel(R) Core(TM) i7-8569U CPU @ 2.80GHz
 BenchmarkJpegEncode
 BenchmarkJpegEncode/image/jpeg.Encode
-BenchmarkJpegEncode/image/jpeg.Encode-4         	     406	   3316061 ns/op	    4400 B/op	       4 allocs/op
+BenchmarkJpegEncode/image/jpeg.Encode-8         	     506	   2421072 ns/op	    4400 B/op	       4 allocs/op
 BenchmarkJpegEncode/turbojpeg.Encode
-BenchmarkJpegEncode/turbojpeg.Encode-4          	    3628	    357853 ns/op	   21776 B/op	       2 allocs/op
+BenchmarkJpegEncode/turbojpeg.Encode-8          	    4587	    255542 ns/op	   21776 B/op	       2 allocs/op
 PASS
 ```

@@ -8,11 +8,6 @@ package turbojpeg
 */
 import "C"
 
-import (
-	"bytes"
-	"sync"
-)
-
 type Subsampling C.int
 
 const (
@@ -23,6 +18,24 @@ const (
 	Subsampling440  Subsampling = C.TJSAMP_440
 	Subsampling411  Subsampling = C.TJSAMP_411
 )
+
+func (s Subsampling) String() string {
+	switch s {
+	case Subsampling444:
+		return "4:4:4"
+	case Subsampling422:
+		return "4:2:2"
+	case Subsampling420:
+		return "4:2:0"
+	case SubsamplingGray:
+		return "gray"
+	case Subsampling440:
+		return "4:4:0"
+	case Subsampling411:
+		return "4:1:1"
+	}
+	return "unknown"
+}
 
 type PixelFormat C.int
 
@@ -41,6 +54,36 @@ const (
 	PixelFormatCMYK PixelFormat = C.TJPF_CMYK
 )
 
+func (p PixelFormat) String() string {
+	switch p {
+	case PixelFormatRGB:
+		return "RGB"
+	case PixelFormatBGR:
+		return "BGR"
+	case PixelFormatRGBX:
+		return "RGBX"
+	case PixelFormatBGRX:
+		return "BGRX"
+	case PixelFormatXBGR:
+		return "XBGR"
+	case PixelFormatXRGB:
+		return "XRGB"
+	case PixelFormatGray:
+		return "gray"
+	case PixelFormatRGBA:
+		return "RGBA"
+	case PixelFormatBGRA:
+		return "BGRA"
+	case PixelFormatABGR:
+		return "ABGR"
+	case PixelFormatARGB:
+		return "ARGB"
+	case PixelFormatCMYK:
+		return "CMYK"
+	}
+	return "unknown"
+}
+
 type ColorSpace C.int
 
 const (
@@ -51,10 +94,18 @@ const (
 	ColorSpaceYCCK  ColorSpace = C.TJCS_YCCK
 )
 
-var (
-	imageBufPool = &sync.Pool{
-		New: func() interface{} {
-			return bytes.NewBuffer(make([]byte, 0, 16*1024))
-		},
+func (c ColorSpace) String() string {
+	switch c {
+	case ColorSpaceRGB:
+		return "RGB"
+	case ColorSpaceYCbCr:
+		return "YCbCr"
+	case ColorSpaceGray:
+		return "gray"
+	case ColorSpaceCMYK:
+		return "CMYK"
+	case ColorSpaceYCCK:
+		return "YCCK"
 	}
-)
+	return "unknown"
+}
