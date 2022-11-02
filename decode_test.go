@@ -41,4 +41,18 @@ func BenchmarkJpegDecode(b *testing.B) {
 			img.Close()
 		}
 	})
+	b.Run("turbojpeg.DecodeToRGBA", func(tb *testing.B) {
+		decoder, err := CreateDecoder()
+		if err != nil {
+			tb.Fatalf("no error: %+v", err)
+		}
+
+		for i := 0; i < tb.N; i += 1 {
+			ref, err := decoder.DecodeToRGBA(data)
+			if err != nil {
+				tb.Fatalf("no error: %+v", err)
+			}
+			ref.Close()
+		}
+	})
 }

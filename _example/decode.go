@@ -46,6 +46,18 @@ func main() {
 		Rect:   image.Rect(0, 0, img.Width, img.Height),
 	}
 
+	savePng(rgba)
+
+	ref, err := decoder.DecodeToRGBA(data)
+	if err != nil {
+		panic(err)
+	}
+	defer ref.Close()
+
+	savePng(ref.Image)
+}
+
+func savePng(rgba *image.RGBA) {
 	out, err := os.CreateTemp("/tmp", "out*.png")
 	if err != nil {
 		panic(err)
