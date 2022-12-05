@@ -49,16 +49,17 @@ jpeg_encode_result_t *encode_jpeg(
 
   jpeg_encode_result_t *result = (jpeg_encode_result_t*) malloc(sizeof(jpeg_encode_result_t));
   if(NULL == result) {
-    free(out);
+    tjFree(out);
     return NULL;
   }
   result->data = (unsigned char*) malloc(out_size);
   if(NULL == result->data) {
     free_jpeg_encode_result(result);
+    tjFree(out);
     return NULL;
   }
   memcpy(result->data, out, out_size);
-  free(out);
+  tjFree(out);
 
   result->data_size = out_size;
   return result;
