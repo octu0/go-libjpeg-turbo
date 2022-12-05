@@ -54,6 +54,7 @@ jpeg_header_t *decode_jpeg_header(
     &header->colorspace
   );
   if(0 != ret) {
+    free_jpeg_header(header);
     return NULL;
   }
   return header;
