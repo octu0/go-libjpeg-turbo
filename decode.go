@@ -55,6 +55,10 @@ func (i *Image) Close() {
 	}
 }
 
+func finalizeImage(i *Image) {
+	i.Close()
+}
+
 type ImageRGBARef struct {
 	Header
 	Format PixelFormat
@@ -69,6 +73,10 @@ func (i *ImageRGBARef) Close() {
 
 		imageBufPool.Put(i.buf)
 	}
+}
+
+func finalizeImageRGBARef(i *ImageRGBARef) {
+	i.Close()
 }
 
 type Decoder struct {
@@ -134,9 +142,7 @@ func (d *Decoder) Decode(data []byte, format PixelFormat) (*Image, error) {
 		buf:    out,
 		closed: 0,
 	}
-	runtime.SetFinalizer(img, func(me *Image) {
-		me.Close()
-	})
+	runtime.SetFinalizer(img, finalizeImage)
 	return img, nil
 }
 
@@ -160,9 +166,7 @@ func (d *Decoder) DecodeToRGBA(data []byte) (*ImageRGBARef, error) {
 		buf:    out,
 		closed: 0,
 	}
-	runtime.SetFinalizer(ref, func(me *ImageRGBARef) {
-		me.Close()
-	})
+	runtime.SetFinalizer(ref, finalizeImageRGBARef)
 	return ref, nil
 }
 
