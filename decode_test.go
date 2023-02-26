@@ -33,6 +33,7 @@ func BenchmarkJpegDecode(b *testing.B) {
 			tb.Fatalf("no error: %+v", err)
 		}
 
+		tb.ResetTimer()
 		for i := 0; i < tb.N; i += 1 {
 			img, err := decoder.Decode(data, PixelFormatRGBA)
 			if err != nil {
@@ -47,6 +48,7 @@ func BenchmarkJpegDecode(b *testing.B) {
 			tb.Fatalf("no error: %+v", err)
 		}
 
+		tb.ResetTimer()
 		for i := 0; i < tb.N; i += 1 {
 			ref, err := decoder.DecodeToRGBA(data)
 			if err != nil {
