@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "turbojpeg.h"
+#include "pool.h"
 
 #ifndef H_GO_LIBJPEG_TURBO_DECODE
 #define H_GO_LIBJPEG_TURBO_DECODE
@@ -26,9 +27,11 @@ void free_jpeg_header(jpeg_header_t *header) {
   free(header);
 }
 
-void free_jpeg_decode_result(jpeg_decode_result_t *result) {
+void free_jpeg_decode_result(void *ctx, jpeg_decode_result_t *result) {
   if(NULL != result) {
-    free(result->data);
+    if(0 < result->data_size) {
+      turbojpeg_bytepool_put(ctx, result->data, result->data_size);
+    }
   }
   free(result);
 }
@@ -60,6 +63,7 @@ jpeg_header_t *decode_jpeg_header(
 }
 
 jpeg_decode_result_t *decode_jpeg(
+  void *ctx,
   tjhandle handle,
   unsigned char *data,
   unsigned long data_size,
@@ -81,15 +85,15 @@ jpeg_decode_result_t *decode_jpeg(
     &result->colorspace
   );
   if (0 != ret) {
-    free_jpeg_decode_result(result);
+    free_jpeg_decode_result(ctx, result);
     return NULL;
   }
 
   int pitch = tjPixelSize[dst_pixel_format] * result->width;
   int dst_size = pitch * result->height;
-  result->data = (unsigned char*) malloc(dst_size);
+  result->data = (unsigned char*) turbojpeg_bytepool_get(ctx, dst_size);
   if (NULL == result->data) {
-    free_jpeg_decode_result(result);
+    free_jpeg_decode_result(ctx, result);
     return NULL;
   }
   result->data_size = dst_size;
@@ -108,7 +112,7 @@ jpeg_decode_result_t *decode_jpeg(
     flags
   );
   if (0 != ret_decompress) {
-    free_jpeg_decode_result(result);
+    free_jpeg_decode_result(ctx, result);
     return NULL;
   }
   return result;

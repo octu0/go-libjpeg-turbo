@@ -11,11 +11,12 @@ package turbojpeg
 import "C"
 
 import (
-	"bytes"
 	"runtime"
+	"runtime/cgo"
 	"sync/atomic"
 	"unsafe"
 
+	"github.com/octu0/cgobytepool"
 	"github.com/pkg/errors"
 )
 
@@ -28,20 +29,22 @@ type Header struct {
 
 type Image struct {
 	Header
-	Format PixelFormat
-	buf    *bytes.Buffer
-	closed int32
+	Format    PixelFormat
+	data      []byte
+	closed    int32
+	closeFunc func()
 }
 
 func (i *Image) Bytes() []byte {
-	return i.buf.Bytes()
+	return i.data
 }
 
 func (i *Image) Close() {
 	if atomic.CompareAndSwapInt32(&i.closed, 0, 1) {
 		runtime.SetFinalizer(i, nil)
-
-		imageBufPool.Put(i.buf)
+		if i.closeFunc != nil {
+			i.closeFunc()
+		}
 	}
 }
 
@@ -50,6 +53,7 @@ func finalizeImage(i *Image) {
 }
 
 type Decoder struct {
+	pool   cgobytepool.Pool
 	handle unsafe.Pointer // tjhandle
 	closed int32
 }
@@ -75,7 +79,10 @@ func (d *Decoder) DecodeHeader(data []byte) (Header, error) {
 }
 
 func (d *Decoder) Decode(data []byte, format PixelFormat) (*Image, error) {
+	ctx := cgobytepool.CgoHandle(d.pool)
+
 	r := unsafe.Pointer(C.decode_jpeg(
+		unsafe.Pointer(&ctx),
 		(C.tjhandle)(d.handle),
 		(*C.uchar)(unsafe.Pointer(&data[0])),
 		C.ulong(len(data)),
@@ -84,14 +91,8 @@ func (d *Decoder) Decode(data []byte, format PixelFormat) (*Image, error) {
 	if r == nil {
 		return nil, errors.Errorf("failed to call tjDecompress2()")
 	}
+
 	result := (*C.jpeg_decode_result_t)(r)
-	defer C.free_jpeg_decode_result(result)
-
-	buf := imageBufPool.Get().(*bytes.Buffer)
-	buf.Reset()
-	buf.Grow(int(result.data_size))
-	buf.Write(C.GoBytes(unsafe.Pointer(result.data), result.data_size)) // copy C allocated
-
 	img := &Image{
 		Header: Header{
 			Width:       int(result.width),
@@ -99,9 +100,10 @@ func (d *Decoder) Decode(data []byte, format PixelFormat) (*Image, error) {
 			Subsampling: Subsampling(result.subsampling),
 			ColorSpace:  ColorSpace(result.colorspace),
 		},
-		Format: PixelFormat(result.pixel_format),
-		buf:    buf,
-		closed: 0,
+		Format:    PixelFormat(result.pixel_format),
+		data:      cgobytepool.GoBytes(unsafe.Pointer(result.data), int(result.data_size)),
+		closed:    0,
+		closeFunc: createImageCloseFunc(ctx, result),
 	}
 	runtime.SetFinalizer(img, finalizeImage)
 	return img, nil
@@ -120,14 +122,31 @@ func finalizeDecoder(d *Decoder) {
 }
 
 func CreateDecoder() (*Decoder, error) {
+	d, err := CreateDecoderWithPool(defaultCgoBytePool)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return d, nil
+}
+
+func CreateDecoderWithPool(p cgobytepool.Pool) (*Decoder, error) {
 	h := unsafe.Pointer(C.tjInitDecompress())
 	if h == nil {
 		return nil, errors.Errorf("failed to call tjInitDecompress()")
 	}
 	d := &Decoder{
+		pool:   p,
 		handle: h,
 		closed: 0,
 	}
 	runtime.SetFinalizer(d, finalizeDecoder)
 	return d, nil
+}
+
+func createImageCloseFunc(ctx cgo.Handle, result *C.jpeg_decode_result_t) func() {
+	return func() {
+		defer ctx.Delete()
+
+		C.free_jpeg_decode_result(unsafe.Pointer(&ctx), result)
+	}
 }

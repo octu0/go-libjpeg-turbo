@@ -17,17 +17,22 @@ import (
 	"sync/atomic"
 	"unsafe"
 
+	"github.com/octu0/cgobytepool"
 	"github.com/pkg/errors"
 )
 
 type Encoder struct {
+	pool   cgobytepool.Pool
 	handle unsafe.Pointer // tjhandle
 	closed int32
 }
 
 func (e *Encoder) EncodeRGBA(out io.Writer, img *image.RGBA, quality int) (int, error) {
+	ctx := cgobytepool.CgoHandle(e.pool)
+
 	width, height := img.Rect.Dx(), img.Rect.Dy()
 	r := unsafe.Pointer(C.encode_jpeg(
+		unsafe.Pointer(&ctx),
 		(C.tjhandle)(e.handle),
 		(*C.uchar)(unsafe.Pointer(&img.Pix[0])),
 		C.int(width),
@@ -41,9 +46,13 @@ func (e *Encoder) EncodeRGBA(out io.Writer, img *image.RGBA, quality int) (int, 
 		return 0, errors.Errorf("failed to call tjCompress2()")
 	}
 	result := (*C.jpeg_encode_result_t)(r)
-	defer C.free_jpeg_encode_result(result)
+	defer func() {
+		defer ctx.Delete()
 
-	return out.Write(C.GoBytes(unsafe.Pointer(result.data), result.data_size))
+		C.free_jpeg_encode_result(unsafe.Pointer(&ctx), result)
+	}()
+
+	return out.Write(cgobytepool.GoBytes(unsafe.Pointer(result.data), int(result.data_size)))
 }
 
 func (e *Encoder) Close() {
@@ -59,12 +68,21 @@ func finalizeEncoder(e *Encoder) {
 }
 
 func CreateEncoder() (*Encoder, error) {
+	e, err := CreateEncoderWithPool(defaultCgoBytePool)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return e, nil
+}
+
+func CreateEncoderWithPool(p cgobytepool.Pool) (*Encoder, error) {
 	h := unsafe.Pointer(C.tjInitCompress())
 	if h == nil {
 		return nil, errors.Errorf("failed to call tjInitCompress()")
 	}
 
 	e := &Encoder{
+		pool:   p,
 		handle: h,
 		closed: 0,
 	}
