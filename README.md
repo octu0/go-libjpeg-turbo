@@ -175,7 +175,7 @@ func PNGToRGBA(r io.Reader) (*image.RGBA, error) {
 
 ### Decode
 
-3x faster than [image/jpeg.Decode](https://pkg.go.dev/image/jpeg#Decode)
+3.7x faster than [image/jpeg.Decode](https://pkg.go.dev/image/jpeg#Decode)
 
 ```
 goos: darwin
@@ -184,15 +184,15 @@ pkg: github.com/octu0/go-libjpeg-turbo
 cpu: Intel(R) Core(TM) i5-8210Y CPU @ 1.60GHz
 BenchmarkJpegDecode
 BenchmarkJpegDecode/image/jpeg.Decode
-BenchmarkJpegDecode/image/jpeg.Decode-4         	     436	   2664416 ns/op	  136977 B/op	      19 allocs/op
+BenchmarkJpegDecode/image/jpeg.Decode-4         	     427	   3196763 ns/op	  136976 B/op	      19 allocs/op
 BenchmarkJpegDecode/turbojpeg.Decode
-BenchmarkJpegDecode/turbojpeg.Decode-4          	    1402	    822829 ns/op	  332926 B/op	       3 allocs/op
+BenchmarkJpegDecode/turbojpeg.Decode-4          	    1594	    899507 ns/op	     791 B/op	      19 allocs/op
 PASS
 ```
 
 ### Encode
 
-7x faster than [image/jpeg.Encode](https://pkg.go.dev/image/jpeg#Encode)
+8.9x faster than [image/jpeg.Encode](https://pkg.go.dev/image/jpeg#Encode)
 
 ```
 goos: darwin
@@ -201,8 +201,8 @@ pkg: github.com/octu0/go-libjpeg-turbo
 cpu: Intel(R) Core(TM) i5-8210Y CPU @ 1.60GHz
 BenchmarkJpegEncode
 BenchmarkJpegEncode/image/jpeg.Encode
-BenchmarkJpegEncode/image/jpeg.Encode-4         	     406	   3316061 ns/op	    4400 B/op	       4 allocs/op
+BenchmarkJpegEncode/image/jpeg.Encode-4         	     382	   2976692 ns/op	    4400 B/op	       4 allocs/op
 BenchmarkJpegEncode/turbojpeg.Encode
-BenchmarkJpegEncode/turbojpeg.Encode-4          	    3628	    357853 ns/op	   21776 B/op	       2 allocs/op
+BenchmarkJpegEncode/turbojpeg.Encode-4          	    3426	    347561 ns/op	     343 B/op	       8 allocs/op
 PASS
 ```
