@@ -2,5 +2,5 @@ package turbojpeg
 
 const (
 	AppName string = "go-libjpeg-turbo"
-	Version string = "1.0.0"
+	Version string = "1.1.0"
 )
