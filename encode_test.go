@@ -36,6 +36,7 @@ func BenchmarkJpegEncode(b *testing.B) {
 		}
 		defer encoder.Close()
 
+		tb.ResetTimer()
 		for i := 0; i < tb.N; i += 1 {
 			if _, err := encoder.EncodeRGBA(io.Discard, rgba, jpeg.DefaultQuality); err != nil {
 				tb.Fatalf("no error: %+v", err)
