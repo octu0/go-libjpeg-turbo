@@ -190,14 +190,14 @@ func PNGToRGBA(r io.Reader) (*image.RGBA, error) {
 goos: darwin
 goarch: amd64
 pkg: github.com/octu0/go-libjpeg-turbo
-cpu: Intel(R) Core(TM) i5-8210Y CPU @ 1.60GHz
+cpu: Intel(R) Core(TM) i7-8569U CPU @ 2.80GHz
 BenchmarkJpegDecode
 BenchmarkJpegDecode/image/jpeg.Decode
-BenchmarkJpegDecode/image/jpeg.Decode-4         	     429	   2568782 ns/op	  136976 B/op	      19 allocs/op
+BenchmarkJpegDecode/image/jpeg.Decode-8         	     654	   1781690 ns/op	  136976 B/op	      19 allocs/op
 BenchmarkJpegDecode/turbojpeg.Decode
-BenchmarkJpegDecode/turbojpeg.Decode-4          	    1468	    806084 ns/op	     775 B/op	      19 allocs/op
+BenchmarkJpegDecode/turbojpeg.Decode-8          	    2103	    558031 ns/op	     775 B/op	      19 allocs/op
 BenchmarkJpegDecode/turbojpeg.DecodeToRGBA
-BenchmarkJpegDecode/turbojpeg.DecodeToRGBA-4    	    1460	    810547 ns/op	     920 B/op	      23 allocs/op
+BenchmarkJpegDecode/turbojpeg.DecodeToRGBA-8    	    2178	    558487 ns/op	     920 B/op	      23 allocs/op
 PASS
 ```
 
@@ -209,11 +209,11 @@ PASS
 goos: darwin
 goarch: amd64
 pkg: github.com/octu0/go-libjpeg-turbo
-cpu: Intel(R) Core(TM) i5-8210Y CPU @ 1.60GHz
+cpu: Intel(R) Core(TM) i7-8569U CPU @ 2.80GHz
 BenchmarkJpegEncode
 BenchmarkJpegEncode/image/jpeg.Encode
-BenchmarkJpegEncode/image/jpeg.Encode-4         	     422	   3012564 ns/op	    4400 B/op	       4 allocs/op
+BenchmarkJpegEncode/image/jpeg.Encode-8         	     560	   2110825 ns/op	    4400 B/op	       4 allocs/op
 BenchmarkJpegEncode/turbojpeg.Encode
-BenchmarkJpegEncode/turbojpeg.Encode-4          	    3394	    345214 ns/op	     343 B/op	       8 allocs/op
+BenchmarkJpegEncode/turbojpeg.Encode-8          	    4915	    236213 ns/op	     343 B/op	       8 allocs/op
 PASS
 ```

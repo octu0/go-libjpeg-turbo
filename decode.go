@@ -111,10 +111,11 @@ func (d *Decoder) decode(data []byte, format PixelFormat) (*Image, error) {
 		C.int(format),
 	))
 	if r == nil {
+		ctx.Delete()
 		return nil, errors.Errorf("failed to call tjDecompress2()")
 	}
-	result := (*C.jpeg_decode_result_t)(r)
 
+	result := (*C.jpeg_decode_result_t)(r)
 	header := Header{
 		Width:       int(result.width),
 		Height:      int(result.height),
