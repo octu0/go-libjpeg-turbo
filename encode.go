@@ -42,8 +42,10 @@ func (e *Encoder) EncodeRGBA(out io.Writer, img *image.RGBA, quality int) (int, 
 		C.int(quality),
 	))
 	if r == nil {
+		ctx.Delete()
 		return 0, errors.Errorf("failed to call tjCompress2()")
 	}
+
 	result := (*C.jpeg_encode_result_t)(r)
 	defer func() {
 		defer ctx.Delete()
